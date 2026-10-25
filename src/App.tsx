@@ -22,6 +22,48 @@ export default function App() {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (new URLSearchParams(window.location.search).get('preview') !== 'order-confirmation') return;
+
+    const mockOrder: PlacedOrderSummary = {
+      orderId: 'jd7preview0000000000000001' as PlacedOrderSummary['orderId'],
+      paymentMethod: 'eft',
+      customerName: 'Alex Customer',
+      customerEmail: 'alex@example.com',
+      customerPhone: '+27 82 123 4567',
+      deliveryAddress: '12 Braai Street\nSandton, Johannesburg\n2196',
+      deliveryNotes: 'Please call on arrival.',
+      items: [
+        {
+          id: 1,
+          name: 'Tender Ribeye',
+          price: 289,
+          priceLabel: 'R289/kg',
+          quantity: 2,
+          image: '/menu/sm/Tender Ribeye 3.webp',
+          weight: 'Per kg',
+        },
+        {
+          id: 2,
+          name: 'Chicken Fillets',
+          price: 95,
+          priceLabel: 'R95/kg',
+          quantity: 1,
+          image: '/menu/sm/Chicken Fillets 1.webp',
+          weight: 'Per kg',
+        },
+      ],
+      subtotal: 673,
+      vat: 100.95,
+      deliveryFee: 0,
+      total: 773.95,
+    };
+
+    setLastOrder(mockOrder);
+    setCurrentPage('orderConfirmation');
+  }, []);
+
   const handleNavigateToMenu = () => {
     setCurrentPage('menu');
   };

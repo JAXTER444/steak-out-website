@@ -10,13 +10,13 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { WeighingInvoiceNotice } from "./WeighingInvoiceNotice";
 import type { Id } from "../../convex/_generated/dataModel";
 import type { CartItem } from "../lib/cart";
 
 export interface PlacedOrderSummary {
   orderId: Id<"orders">;
-  paymentMethod: "cod" | "eft";
+  paymentMethod: "eft";
   customerName: string;
   customerEmail: string;
   customerPhone: string;
@@ -40,7 +40,7 @@ export function CheckoutPage({ onNavigateToCart, onOrderPlaced }: CheckoutPagePr
   const user = useQuery(api.users.currentUser);
   const createOrder = useMutation(api.orders.create);
 
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "eft">("cod");
+  const paymentMethod = "eft" as const;
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -200,36 +200,20 @@ export function CheckoutPage({ onNavigateToCart, onOrderPlaced }: CheckoutPagePr
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
-              <h2 className="text-xl font-medium text-gray-900 mb-4">Payment</h2>
-              <RadioGroup
-                value={paymentMethod}
-                onValueChange={(value) => setPaymentMethod(value as "cod" | "eft")}
-                className="space-y-3"
-              >
-                <label
-                  htmlFor="pay-cod"
-                  className="flex items-start gap-3 rounded-lg border-2 border-gray-200 p-4 cursor-pointer has-[:checked]:border-[#EE101A]"
-                >
-                  <RadioGroupItem value="cod" id="pay-cod" className="mt-0.5" />
-                  <div>
-                    <p className="font-medium text-gray-900">Cash on delivery</p>
-                    <p className="text-sm text-gray-600">Pay when your order arrives.</p>
-                  </div>
-                </label>
-                <label
-                  htmlFor="pay-eft"
-                  className="flex items-start gap-3 rounded-lg border-2 border-gray-200 p-4 cursor-pointer has-[:checked]:border-[#EE101A]"
-                >
-                  <RadioGroupItem value="eft" id="pay-eft" className="mt-0.5" />
-                  <div>
-                    <p className="font-medium text-gray-900">Bank transfer (EFT)</p>
-                    <p className="text-sm text-gray-600">
-                      We&apos;ll email payment details after you place the order.
-                    </p>
-                  </div>
-                </label>
-              </RadioGroup>
+            <WeighingInvoiceNotice />
+
+            <div className="bg-white rounded-[8px] border-2 border-black p-4 md:p-6">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Payment</h2>
+              <p className="text-sm text-gray-600 mb-4">
+                We currently accept bank transfer (EFT) only.
+              </p>
+              <div className="rounded-[8px] border-2 border-[#EE101A] bg-[#FFF8F8] p-4">
+                <p className="font-medium text-gray-900">Bank transfer (EFT)</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  After your order is weighed, we&apos;ll email you banking details and the exact
+                  invoice amount to {customerEmail || "your email address"}.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -262,9 +246,12 @@ export function CheckoutPage({ onNavigateToCart, onOrderPlaced }: CheckoutPagePr
                   <span>{totals.delivery === 0 ? "FREE" : formatRand(totals.delivery)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-medium pt-2">
-                  <span>Total</span>
-                  <span style={{ color: "#EE101A" }}>{formatRand(totals.total)}</span>
+                  <span>Estimated total</span>
+                  <span style={{ color: "#EE101A" }}>~{formatRand(totals.total)}</span>
                 </div>
+                <p className="text-xs text-gray-500 pt-2">
+                  Final total confirmed after weighing.
+                </p>
               </div>
               <Button
                 type="submit"

@@ -98,11 +98,9 @@ export function OrdersPage({ onNavigateToMenu, onOpenLogin }: OrdersPageProps) {
                   ))}
                 </ul>
                 <div className="flex justify-between items-center border-t pt-4">
-                  <span className="text-sm text-gray-600 capitalize">
-                    {order.paymentMethod === "cod" ? "Cash on delivery" : "EFT"}
-                  </span>
+                  <span className="text-sm text-gray-600">Bank transfer (EFT)</span>
                   <span className="text-lg font-medium" style={{ color: "#EE101A" }}>
-                    {formatRand(order.total)}
+                    ~{formatRand(order.total)}
                   </span>
                 </div>
               </li>

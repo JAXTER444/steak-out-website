@@ -13,6 +13,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { WeighingInvoiceNotice } from "./WeighingInvoiceNotice";
 
 interface AddToCartDialogProps {
   item: MenuItem | null;
@@ -98,10 +99,12 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
             </div>
           </div>
 
-          <div className="flex items-center justify-between mb-6 text-base">
-            <span className="text-gray-600">Subtotal</span>
-            <span className="font-semibold text-gray-900">{formatRand(lineTotal)}</span>
+          <div className="flex items-center justify-between mb-4 text-base">
+            <span className="text-gray-600">Estimated subtotal</span>
+            <span className="font-semibold text-gray-900">~{formatRand(lineTotal)}</span>
           </div>
+
+          <WeighingInvoiceNotice compact className="mb-6" />
 
           <div className="flex gap-3">
             <Button
