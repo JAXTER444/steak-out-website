@@ -5,6 +5,60 @@ import { menuItems } from "../data/menuItems";
 import type { MenuItem } from "../lib/cart";
 import { AddToCartDialog } from "./AddToCartDialog";
 
+const menuGridClassName =
+  "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3.5 sm:gap-4 md:gap-5";
+
+function MenuProductGrid({
+  items,
+  onAdd,
+}: {
+  items: MenuItem[];
+  onAdd: (item: MenuItem) => void;
+}) {
+  return (
+    <div className={menuGridClassName}>
+      {items.map((item) => (
+        <article
+          key={item.id}
+          className="flex flex-col justify-between overflow-hidden rounded-[8px] border-2 border-black border-solid bg-white"
+        >
+          <div className="flex flex-col">
+            <div className="aspect-square w-full shrink-0 overflow-hidden">
+              <ImageWithFallback
+                src={item.image}
+                alt={item.name}
+                className="size-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col gap-4 px-4 pt-4 pb-2">
+              <div className="flex flex-col gap-1.5 text-black">
+                <h3 className="text-lg leading-snug tracking-[0.36px]">
+                  {item.name}
+                </h3>
+                <p className="text-sm leading-normal tracking-[0.28px] text-black/80">
+                  {item.weight}
+                </p>
+              </div>
+              <p className="text-lg font-bold leading-normal tracking-[0.36px] text-[#EE101A]">
+                {item.price}
+              </p>
+            </div>
+          </div>
+          <div className="px-2.5 pb-2.5">
+            <button
+              type="button"
+              onClick={() => onAdd(item)}
+              className="flex h-11 w-full items-center justify-center rounded-[6px] bg-[#0B0B0B] text-center text-base leading-normal tracking-[0.36px] text-white transition-colors hover:bg-[#1a1a1a]"
+            >
+              Add to cart
+            </button>
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
 export function MenuPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [addToCartItem, setAddToCartItem] = useState<MenuItem | null>(null);
@@ -24,6 +78,17 @@ export function MenuPage() {
     selectedCategory === "All"
       ? menuItems
       : menuItems.filter((item) => item.category === selectedCategory);
+
+  const categorySections =
+    selectedCategory === "All"
+      ? categories
+          .filter((category) => category !== "All")
+          .map((category) => ({
+            category,
+            items: menuItems.filter((item) => item.category === category),
+          }))
+          .filter((section) => section.items.length > 0)
+      : [];
 
   const openAddToCart = (item: MenuItem) => {
     setAddToCartItem(item);
@@ -87,46 +152,20 @@ export function MenuPage() {
         </div>
 
         {/* Product Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-          {filteredItems.map((item) => (
-            <article
-              key={item.id}
-              className="flex flex-col justify-between overflow-hidden rounded-[8px] border-2 border-black border-solid bg-white"
-            >
-              <div className="flex flex-col">
-                <div className="aspect-square w-full shrink-0 overflow-hidden">
-                  <ImageWithFallback
-                    src={item.image}
-                    alt={item.name}
-                    className="size-full object-cover"
-                  />
-                </div>
-                <div className="flex flex-col gap-4 px-4 pt-4 pb-2">
-                  <div className="flex flex-col gap-1.5 text-black">
-                    <h3 className="text-lg leading-snug tracking-[0.36px]">
-                      {item.name}
-                    </h3>
-                    <p className="text-sm leading-normal tracking-[0.28px] text-black/80">
-                      {item.weight}
-                    </p>
-                  </div>
-                  <p className="text-lg font-bold leading-normal tracking-[0.36px] text-[#EE101A]">
-                    {item.price}
-                  </p>
-                </div>
-              </div>
-              <div className="px-2.5 pb-2.5">
-                <button
-                  type="button"
-                  onClick={() => openAddToCart(item)}
-                  className="flex h-11 w-full items-center justify-center rounded-[6px] bg-[#0B0B0B] text-center text-base leading-normal tracking-[0.36px] text-white transition-colors hover:bg-[#1a1a1a]"
-                >
-                  Add to cart
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
+        {selectedCategory === "All" ? (
+          <div className="flex flex-col gap-12 md:gap-16">
+            {categorySections.map((section) => (
+              <section key={section.category}>
+                <h2 className="mb-4 text-xl font-medium tracking-[0.36px] text-gray-900 md:mb-5 md:text-2xl">
+                  {section.category}
+                </h2>
+                <MenuProductGrid items={section.items} onAdd={openAddToCart} />
+              </section>
+            ))}
+          </div>
+        ) : (
+          <MenuProductGrid items={filteredItems} onAdd={openAddToCart} />
+        )}
 
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
