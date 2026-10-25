@@ -22,14 +22,25 @@ import { useCart } from "../contexts/CartContext";
 interface NavigationProps {
   currentPage: string;
   onPageChange: (page: string) => void;
+  authDialogOpen?: boolean;
+  onAuthDialogOpenChange?: (open: boolean) => void;
+  onNavigateToOrders?: () => void;
 }
 
-export function Navigation({ currentPage, onPageChange }: NavigationProps) {
+export function Navigation({
+  currentPage,
+  onPageChange,
+  authDialogOpen: authDialogOpenProp,
+  onAuthDialogOpenChange,
+  onNavigateToOrders,
+}: NavigationProps) {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const { signOut } = useAuthActions();
   const user = useQuery(api.users.currentUser);
   const { totalQuantity } = useCart();
-  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [authDialogOpenLocal, setAuthDialogOpenLocal] = useState(false);
+  const authDialogOpen = authDialogOpenProp ?? authDialogOpenLocal;
+  const setAuthDialogOpen = onAuthDialogOpenChange ?? setAuthDialogOpenLocal;
 
   const pages = [
     { id: 'menu', label: 'Menu' },
@@ -117,9 +128,14 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem disabled>
+            <DropdownMenuItem
+              onClick={() => {
+                onNavigateToOrders?.();
+                onPageChange("orders");
+              }}
+            >
               <User className="mr-2 h-4 w-4" />
-              My account
+              My orders
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => void signOut()}>
               <LogOut className="mr-2 h-4 w-4" />
@@ -286,6 +302,15 @@ export function Navigation({ currentPage, onPageChange }: NavigationProps) {
                     <div className="px-4 py-3 text-white/80 text-sm">
                       Signed in as {displayName}
                     </div>
+                    <button
+                      onClick={() => {
+                        onNavigateToOrders?.();
+                        handleNavClick("orders");
+                      }}
+                      className="text-left px-4 py-3 rounded-lg text-white text-[15px] hover:bg-white/10 transition-colors w-full"
+                    >
+                      My orders
+                    </button>
                     <button
                       onClick={() => void signOut()}
                       className="text-left px-4 py-3 rounded-lg text-white text-[15px] hover:bg-white/10 transition-colors w-full"

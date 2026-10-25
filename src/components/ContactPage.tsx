@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { toast } from "sonner";
+import { api } from "../../convex/_generated/api";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
@@ -8,19 +12,53 @@ const contactDetails = [
   {
     icon: Phone,
     title: "Call Us",
-    lines: ["(555) 123-MEAT", "(555) 123-6328"],
+    lines: [
+      { label: "(555) 123-MEAT", href: "tel:+15551236328" },
+      { label: "(555) 123-6328", href: "tel:+15551236328" },
+    ],
   },
   {
     icon: Mail,
     title: "Email Us",
-    lines: ["orders@steakout.com", "info@steakout.com"],
+    lines: [
+      { label: "orders@steakout.com", href: "mailto:orders@steakout.com" },
+      { label: "info@steakout.com", href: "mailto:info@steakout.com" },
+    ],
   },
 ];
 
 export function ContactPage() {
+  const submitMessage = useMutation(api.contact.submit);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formKey, setFormKey] = useState(0);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = new FormData(form);
+
+    setIsSubmitting(true);
+    try {
+      await submitMessage({
+        firstName: String(data.get("firstName") ?? ""),
+        lastName: String(data.get("lastName") ?? ""),
+        email: String(data.get("email") ?? ""),
+        phone: String(data.get("phone") ?? "") || undefined,
+        subject: String(data.get("subject") ?? ""),
+        message: String(data.get("message") ?? ""),
+      });
+      toast.success("Message sent! We'll get back to you soon.");
+      form.reset();
+      setFormKey((k) => k + 1);
+    } catch {
+      toast.error("Could not send your message. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero — matches Menu page */}
       <div className="relative h-[500px] overflow-hidden">
         <ImageWithFallback
           src="/contact/Contact.png"
@@ -40,7 +78,6 @@ export function ContactPage() {
         </div>
       </div>
 
-      {/* Contact form + details */}
       <section className="py-16 md:py-20 pb-20 px-6">
         <div className="max-w-6xl mx-auto space-y-12">
           <div className="bg-white rounded-[8px] border-2 border-black p-8 md:p-12">
@@ -51,7 +88,7 @@ export function ContactPage() {
               Tell us about your order, preferred cuts, or any special requirements.
             </p>
 
-            <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+            <form key={formKey} className="space-y-6" onSubmit={(e) => void handleSubmit(e)}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
@@ -59,7 +96,9 @@ export function ContactPage() {
                   </label>
                   <Input
                     id="firstName"
+                    name="firstName"
                     placeholder="John"
+                    required
                     className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] h-12"
                   />
                 </div>
@@ -69,7 +108,9 @@ export function ContactPage() {
                   </label>
                   <Input
                     id="lastName"
+                    name="lastName"
                     placeholder="Doe"
+                    required
                     className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] h-12"
                   />
                 </div>
@@ -82,8 +123,10 @@ export function ContactPage() {
                   </label>
                   <Input
                     id="email"
+                    name="email"
                     type="email"
                     placeholder="john@example.com"
+                    required
                     className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] h-12"
                   />
                 </div>
@@ -93,6 +136,7 @@ export function ContactPage() {
                   </label>
                   <Input
                     id="phone"
+                    name="phone"
                     type="tel"
                     placeholder="(555) 123-4567"
                     className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] h-12"
@@ -106,7 +150,9 @@ export function ContactPage() {
                 </label>
                 <Input
                   id="subject"
+                  name="subject"
                   placeholder="Custom order inquiry"
+                  required
                   className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] h-12"
                 />
               </div>
@@ -117,18 +163,21 @@ export function ContactPage() {
                 </label>
                 <Textarea
                   id="message"
+                  name="message"
                   placeholder="Tell us about your meat needs, preferred cuts, or any special requirements..."
                   rows={5}
+                  required
                   className="bg-gray-50 border-gray-200 focus:border-[#EE101A] focus:ring-[#EE101A] resize-none"
                 />
               </div>
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full md:w-auto px-10 h-12 text-base font-medium rounded-[6px] transition-colors hover:bg-[#1a1a1a]"
                 style={{ backgroundColor: "#0B0B0B", color: "white" }}
               >
-                Send Message
+                {isSubmitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
           </div>
@@ -143,14 +192,16 @@ export function ContactPage() {
                   <Icon className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                    {title}
-                  </h2>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-2">{title}</h2>
                   <div className="space-y-1">
                     {lines.map((line) => (
-                      <p key={line} className="text-gray-600 text-sm leading-relaxed">
-                        {line}
-                      </p>
+                      <a
+                        key={line.href + line.label}
+                        href={line.href}
+                        className="block text-gray-600 text-sm leading-relaxed hover:text-[#EE101A] transition-colors"
+                      >
+                        {line.label}
+                      </a>
                     ))}
                   </div>
                 </div>

@@ -5,6 +5,29 @@ export function menuImage(filename: string) {
   return `/menu/${encodeURIComponent(filename)}`;
 }
 
+/** Phone-sized WebP. Wider screens keep the original image. */
+export function menuImageMobile(src: string) {
+  if (src.startsWith("/menu/")) {
+    const filename = decodeURIComponent(src.slice("/menu/".length));
+    const webpName = filename.replace(/\.[^.]+$/i, ".webp");
+    return `/menu/sm/${encodeURIComponent(webpName)}`;
+  }
+
+  try {
+    const url = new URL(src);
+    if (url.hostname === "images.unsplash.com") {
+      url.searchParams.set("fm", "webp");
+      url.searchParams.set("w", "480");
+      url.searchParams.set("q", "70");
+      return url.toString();
+    }
+  } catch {
+    return src;
+  }
+
+  return src;
+}
+
 export const menuItems: MenuItem[] = [
   { id: 1, name: "Boneless Brisket", category: "Beef", price: "R165", weight: "1kg", image: menuImage("Boneless Brisket.png") },
   { id: 2, name: "Flat Rib", category: "Beef", price: "R175", weight: "1kg", image: menuImage("Flat Rib.png") },

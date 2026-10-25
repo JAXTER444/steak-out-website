@@ -3,12 +3,14 @@ import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useCart } from "../contexts/CartContext";
 import { formatRand } from "../lib/cart";
+import { computeOrderTotals } from "../lib/orderTotals";
 
 interface CartPageProps {
   onNavigateToMenu: () => void;
+  onNavigateToCheckout: () => void;
 }
 
-export function CartPage({ onNavigateToMenu }: CartPageProps) {
+export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPageProps) {
   const { items: cartItems, updateQuantity, removeItem, totalQuantity } = useCart();
 
   const adjustQuantity = (id: number, change: number) => {
@@ -17,10 +19,7 @@ export function CartPage({ onNavigateToMenu }: CartPageProps) {
     updateQuantity(id, item.quantity + change);
   };
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const vat = subtotal * 0.15;
-  const delivery = subtotal === 0 || subtotal >= 1000 ? 0 : 75;
-  const total = subtotal + vat + delivery;
+  const { subtotal, vat, delivery, total } = computeOrderTotals(cartItems);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-[108px] pb-[42px]">
@@ -156,6 +155,8 @@ export function CartPage({ onNavigateToMenu }: CartPageProps) {
                 </div>
 
                 <Button
+                  type="button"
+                  onClick={onNavigateToCheckout}
                   className="w-full text-white py-4 md:py-6 text-base md:text-lg font-medium mb-3 md:mb-4"
                   style={{ backgroundColor: "#EE101A" }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d60e17")}

@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useState } from "react";
-import { menuItems } from "../data/menuItems";
+import { menuImageMobile, menuItems } from "../data/menuItems";
 import type { MenuItem } from "../lib/cart";
 import { AddToCartDialog } from "./AddToCartDialog";
 
@@ -11,24 +11,35 @@ const menuGridClassName =
 function MenuProductGrid({
   items,
   onAdd,
+  eagerCount = 0,
 }: {
   items: MenuItem[];
   onAdd: (item: MenuItem) => void;
+  eagerCount?: number;
 }) {
   return (
     <div className={menuGridClassName}>
-      {items.map((item) => (
+      {items.map((item, index) => (
         <article
           key={item.id}
           className="flex flex-col justify-between overflow-hidden rounded-[8px] border-2 border-black border-solid bg-white"
         >
           <div className="flex flex-col">
             <div className="aspect-square w-full shrink-0 overflow-hidden">
-              <ImageWithFallback
-                src={item.image}
-                alt={item.name}
-                className="size-full object-cover"
-              />
+              <picture>
+                <source
+                  media="(max-width: 639px)"
+                  srcSet={menuImageMobile(item.image)}
+                  type="image/webp"
+                />
+                <ImageWithFallback
+                  src={item.image}
+                  alt={item.name}
+                  className="size-full object-cover"
+                  loading={index < eagerCount ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              </picture>
             </div>
             <div className="flex flex-col gap-4 px-4 pt-4 pb-2">
               <div className="flex flex-col gap-1.5 text-black">
@@ -59,7 +70,11 @@ function MenuProductGrid({
   );
 }
 
-export function MenuPage() {
+interface MenuPageProps {
+  onNavigateToContact: () => void;
+}
+
+export function MenuPage({ onNavigateToContact }: MenuPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [addToCartItem, setAddToCartItem] = useState<MenuItem | null>(null);
   const [addToCartOpen, setAddToCartOpen] = useState(false);
@@ -105,11 +120,19 @@ export function MenuPage() {
 
       {/* Header Image with Overlay */}
       <div className="relative h-[500px] overflow-hidden">
-        <ImageWithFallback
-          src="/menu/menu%20header.png"
-          alt="Steak-Out menu"
-          className="w-full h-full object-cover"
-        />
+        <picture>
+          <source
+            media="(max-width: 639px)"
+            srcSet={menuImageMobile("/menu/menu%20header.png")}
+            type="image/webp"
+          />
+          <ImageWithFallback
+            src="/menu/menu%20header.png"
+            alt="Steak-Out menu"
+            className="w-full h-full object-cover"
+            decoding="async"
+          />
+        </picture>
         <div className="absolute inset-0 bg-black/70" />
 
         {/* Header Content Overlay */}
@@ -154,7 +177,7 @@ export function MenuPage() {
         {/* Product Grid */}
         {selectedCategory === "All" ? (
           <div className="flex flex-col gap-12 md:gap-16">
-            {categorySections.map((section) => (
+            {categorySections.map((section, sectionIndex) => (
               <section key={section.category}>
                 <div className="mb-5 md:mb-6">
                   <h2 className="text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">
@@ -162,12 +185,16 @@ export function MenuPage() {
                   </h2>
                   <div className="mt-2.5 h-0.5 w-14 bg-[#EE101A]" aria-hidden="true" />
                 </div>
-                <MenuProductGrid items={section.items} onAdd={openAddToCart} />
+                <MenuProductGrid
+                  items={section.items}
+                  onAdd={openAddToCart}
+                  eagerCount={sectionIndex === 0 ? 4 : 0}
+                />
               </section>
             ))}
           </div>
         ) : (
-          <MenuProductGrid items={filteredItems} onAdd={openAddToCart} />
+          <MenuProductGrid items={filteredItems} onAdd={openAddToCart} eagerCount={4} />
         )}
 
         {filteredItems.length === 0 && (
@@ -184,7 +211,9 @@ export function MenuPage() {
             Need a specific cut or have special requirements? Contact us for custom orders and bulk pricing.
           </p>
           <Button
+            type="button"
             variant="outline"
+            onClick={onNavigateToContact}
             style={{ borderColor: "#EE101A", color: "#EE101A" }}
             onMouseEnter={(e) => {
               e.currentTarget.style.backgroundColor = "#EE101A";
