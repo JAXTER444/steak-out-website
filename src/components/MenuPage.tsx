@@ -156,9 +156,12 @@ export function MenuPage() {
           <div className="flex flex-col gap-12 md:gap-16">
             {categorySections.map((section) => (
               <section key={section.category}>
-                <h2 className="mb-4 text-xl font-medium tracking-[0.36px] text-gray-900 md:mb-5 md:text-2xl">
-                  {section.category}
-                </h2>
+                <div className="mb-5 md:mb-6">
+                  <h2 className="text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">
+                    {section.category}
+                  </h2>
+                  <div className="mt-2.5 h-0.5 w-14 bg-[#EE101A]" aria-hidden="true" />
+                </div>
                 <MenuProductGrid items={section.items} onAdd={openAddToCart} />
               </section>
             ))}
