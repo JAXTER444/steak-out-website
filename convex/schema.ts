@@ -22,6 +22,9 @@ const schema = defineSchema({
     phone: v.optional(v.string()),
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
+    role: v.optional(
+      v.union(v.literal("admin"), v.literal("worker"), v.literal("customer")),
+    ),
   }).index("email", ["email"]),
 
   orders: defineTable({
@@ -45,7 +48,8 @@ const schema = defineSchema({
     total: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_email", ["customerEmail"]),
+    .index("by_email", ["customerEmail"])
+    .index("by_status", ["status"]),
 
   contactMessages: defineTable({
     firstName: v.string(),
@@ -54,6 +58,7 @@ const schema = defineSchema({
     phone: v.optional(v.string()),
     subject: v.string(),
     message: v.string(),
+    readAt: v.optional(v.number()),
   }),
 });
 

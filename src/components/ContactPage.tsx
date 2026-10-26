@@ -6,26 +6,6 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { Phone, Mail } from "lucide-react";
-
-const contactDetails = [
-  {
-    icon: Phone,
-    title: "Call Us",
-    lines: [
-      { label: "(555) 123-MEAT", href: "tel:+15551236328" },
-      { label: "(555) 123-6328", href: "tel:+15551236328" },
-    ],
-  },
-  {
-    icon: Mail,
-    title: "Email Us",
-    lines: [
-      { label: "orders@steakout.com", href: "mailto:orders@steakout.com" },
-      { label: "info@steakout.com", href: "mailto:info@steakout.com" },
-    ],
-  },
-];
 
 export function ContactPage() {
   const submitMessage = useMutation(api.contact.submit);
@@ -180,33 +160,6 @@ export function ContactPage() {
                 {isSubmitting ? "Sending..." : "Send Message"}
               </Button>
             </form>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {contactDetails.map(({ icon: Icon, title, lines }) => (
-              <div
-                key={title}
-                className="bg-white rounded-[8px] border-2 border-black p-6 flex flex-col gap-4 hover:shadow-md transition-shadow"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#EE101A]/10 text-[#EE101A]">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 mb-2">{title}</h2>
-                  <div className="space-y-1">
-                    {lines.map((line) => (
-                      <a
-                        key={line.href + line.label}
-                        href={line.href}
-                        className="block text-gray-600 text-sm leading-relaxed hover:text-[#EE101A] transition-colors"
-                      >
-                        {line.label}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>

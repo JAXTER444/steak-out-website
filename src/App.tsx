@@ -11,6 +11,7 @@ import { CartPage } from './components/CartPage';
 import { CheckoutPage, type PlacedOrderSummary } from './components/CheckoutPage';
 import { OrderConfirmationPage } from './components/OrderConfirmationPage';
 import { OrdersPage } from './components/OrdersPage';
+import { Footer } from './components/Footer';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -158,6 +159,7 @@ export default function App() {
           onNavigateToOrders={handleNavigateToOrders}
         />
         {renderCurrentPage()}
+        {currentPage !== 'home' && <Footer />}
       </div>
     </CartProvider>
   );
