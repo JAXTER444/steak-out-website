@@ -10,7 +10,6 @@ interface Special {
   originalPrice: string;
   specialPrice: string;
   image: string;
-  badge: string;
 }
 
 /** Local file in `public/home/` — encodes spaces for URLs */
@@ -26,7 +25,6 @@ const specials: Special[] = [
     originalPrice: "R255",
     specialPrice: "R255",
     image: "https://images.unsplash.com/photo-1682159173065-2b49ffd61adb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmVtaXVtJTIwc3RlYWslMjByaWJleWV8ZW58MXx8fHwxNzY4OTIxMTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-    badge: "BEST SELLER"
   },
   {
     id: 2,
@@ -35,7 +33,6 @@ const specials: Special[] = [
     originalPrice: "R99",
     specialPrice: "R89",
     image: homeImage("Chicken flatty.png"),
-    badge: "CHEF'S PICK"
   },
   {
     id: 3,
@@ -44,7 +41,6 @@ const specials: Special[] = [
     originalPrice: "R190",
     specialPrice: "R170",
     image: homeImage("Pork Espetada.png"),
-    badge: "LIMITED TIME"
   },
   {
     id: 4,
@@ -53,7 +49,6 @@ const specials: Special[] = [
     originalPrice: "R520",
     specialPrice: "R480",
     image: homeImage("tribeca home.png"),
-    badge: "PREMIUM"
   }
 ];
 
@@ -105,16 +100,6 @@ export function HeroCarousel() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {/* Badge */}
-                <div className="mb-4">
-                  <span 
-                    className="px-4 py-2 text-white text-sm font-medium rounded-full inline-block"
-                    style={{ backgroundColor: '#EE101A' }}
-                  >
-                    {current.badge}
-                  </span>
-                </div>
-
                 <h3 className="text-3xl md:text-4xl lg:text-5xl font-medium mb-3 text-white">
                   {current.name}
                 </h3>

@@ -37,10 +37,16 @@ export const sendInvoice = action({
       );
     }
 
+    // From must be a Resend-verified domain (or onboarding@resend.dev for tests).
+    // ProtonMail / Gmail addresses cannot be used as From without owning that domain.
     const from =
       process.env.INVOICE_FROM_EMAIL?.trim() ||
       process.env.RESEND_FROM_EMAIL?.trim() ||
       "Steak-Out <onboarding@resend.dev>";
+    const replyTo =
+      process.env.INVOICE_REPLY_TO?.trim() ||
+      process.env.RESEND_REPLY_TO?.trim() ||
+      undefined;
 
     const pdfBase64 = args.pdfBase64.replace(
       /^data:application\/pdf;base64,/,
@@ -69,6 +75,7 @@ export const sendInvoice = action({
       },
       body: JSON.stringify({
         from,
+        ...(replyTo ? { reply_to: replyTo } : {}),
         to: [to],
         subject,
         html,

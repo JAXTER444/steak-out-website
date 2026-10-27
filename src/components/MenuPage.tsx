@@ -5,6 +5,7 @@ import { menuImageMobile, menuItems } from "../data/menuItems";
 import type { MenuItem } from "../lib/cart";
 import { AddToCartDialog } from "./AddToCartDialog";
 import { useMenuWithImages } from "../hooks/useMenuWithImages";
+import { MenuQueryErrorBoundary } from "./MenuQueryErrorBoundary";
 
 const menuGridClassName =
   "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3.5 sm:gap-4 md:gap-5";
@@ -91,11 +92,35 @@ const MENU_CATEGORIES = [
 ] as const;
 
 export function MenuPage({ onNavigateToContact }: MenuPageProps) {
+  return (
+    <MenuQueryErrorBoundary
+      fallback={<MenuPageView catalog={menuItems} onNavigateToContact={onNavigateToContact} />}
+    >
+      <MenuPageWithLiveImages onNavigateToContact={onNavigateToContact} />
+    </MenuQueryErrorBoundary>
+  );
+}
+
+function MenuPageWithLiveImages({ onNavigateToContact }: MenuPageProps) {
+  const liveMenu = useMenuWithImages();
+  return (
+    <MenuPageView
+      catalog={liveMenu ?? menuItems}
+      onNavigateToContact={onNavigateToContact}
+    />
+  );
+}
+
+function MenuPageView({
+  catalog,
+  onNavigateToContact,
+}: {
+  catalog: MenuItem[];
+  onNavigateToContact: () => void;
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [addToCartItem, setAddToCartItem] = useState<MenuItem | null>(null);
   const [addToCartOpen, setAddToCartOpen] = useState(false);
-  const liveMenu = useMenuWithImages();
-  const catalog = liveMenu ?? menuItems;
 
   const filteredItems = useMemo(
     () =>

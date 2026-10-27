@@ -16,6 +16,10 @@ function parseAdminEmails(): string[] {
   return parseEmailList("ADMIN_EMAILS");
 }
 
+function parseCoAdminEmails(): string[] {
+  return parseEmailList("CO_ADMIN_EMAILS");
+}
+
 function parseWorkerEmails(): string[] {
   return parseEmailList("WORKER_EMAILS");
 }
@@ -23,6 +27,11 @@ function parseWorkerEmails(): string[] {
 function isAdminAllowlisted(email: string | undefined): boolean {
   if (!email) return false;
   return parseAdminEmails().includes(email.trim().toLowerCase());
+}
+
+function isCoAdminAllowlisted(email: string | undefined): boolean {
+  if (!email) return false;
+  return parseCoAdminEmails().includes(email.trim().toLowerCase());
 }
 
 function isWorkerAllowlisted(email: string | undefined): boolean {
@@ -34,13 +43,22 @@ function isAdminUser(user: Doc<"users">): boolean {
   return user.role === "admin" || isAdminAllowlisted(user.email);
 }
 
+function isCoAdminUser(user: Doc<"users">): boolean {
+  return user.role === "coAdmin" || isCoAdminAllowlisted(user.email);
+}
+
 function isWorkerUser(user: Doc<"users">): boolean {
   return user.role === "worker" || isWorkerAllowlisted(user.email);
 }
 
-/** Admin or worker (orders / ops access). */
+/** Primary admin or co-admin (shared admin APIs). */
+function isAdminOrCoAdminUser(user: Doc<"users">): boolean {
+  return isAdminUser(user) || isCoAdminUser(user);
+}
+
+/** Admin, co-admin, or worker (orders / ops access). */
 function isStaffUser(user: Doc<"users">): boolean {
-  return isAdminUser(user) || isWorkerUser(user);
+  return isAdminOrCoAdminUser(user) || isWorkerUser(user);
 }
 
 async function requireAuthenticatedUser(ctx: Ctx): Promise<Doc<"users">> {
@@ -57,40 +75,127 @@ async function requireAuthenticatedUser(ctx: Ctx): Promise<Doc<"users">> {
   return user;
 }
 
-/** Read-only admin check (queries). Does not write role. */
+/**
+ * Read-only check for admin APIs (primary admin or co-admin).
+ * Panel gates use getAdminUser / getCoAdminPanelUser instead.
+ */
 export async function requireAdmin(ctx: Ctx): Promise<Doc<"users">> {
   const user = await requireAuthenticatedUser(ctx);
 
-  if (!isAdminUser(user)) {
+  if (!isAdminOrCoAdminUser(user)) {
     throw new Error("Admin access required");
   }
 
   return user;
 }
 
-/** Mutation-safe: require admin and persist role if allowlisted. */
+/**
+ * Mutation-safe admin API check. Persists admin/coAdmin from allowlists.
+ * Never upgrades a co-admin to admin.
+ */
 export async function requireAdminMutation(
   ctx: MutationCtx,
 ): Promise<Doc<"users">> {
   const user = await requireAdmin(ctx);
+
   if (user.role !== "admin" && isAdminAllowlisted(user.email)) {
     await ctx.db.patch(user._id, { role: "admin" });
     return { ...user, role: "admin" };
   }
+
+  if (
+    user.role !== "admin" &&
+    user.role !== "coAdmin" &&
+    isCoAdminAllowlisted(user.email)
+  ) {
+    await ctx.db.patch(user._id, { role: "coAdmin" });
+    return { ...user, role: "coAdmin" };
+  }
+
   return user;
 }
 
+/** Primary Admin Panel gate only (ADMIN_EMAILS / role admin). */
 export async function getAdminUser(
   ctx: Ctx,
 ): Promise<Doc<"users"> | null> {
   try {
-    return await requireAdmin(ctx);
+    const user = await requireAuthenticatedUser(ctx);
+    if (!isAdminUser(user)) {
+      return null;
+    }
+    return user;
   } catch {
     return null;
   }
 }
 
-/** Read-only staff check (admin or worker). Does not write role. */
+/** Persist role: "admin" for primary Admin Panel sign-in. */
+export async function requirePrimaryAdminMutation(
+  ctx: MutationCtx,
+): Promise<Doc<"users">> {
+  const user = await requireAuthenticatedUser(ctx);
+
+  if (!isAdminUser(user)) {
+    throw new Error("Admin access required");
+  }
+
+  if (user.role !== "admin" && isAdminAllowlisted(user.email)) {
+    await ctx.db.patch(user._id, { role: "admin" });
+    return { ...user, role: "admin" };
+  }
+
+  return user;
+}
+
+/**
+ * Co-Admin Panel gate: CO_ADMIN_EMAILS / role coAdmin, or primary admins.
+ * Does not grant co-admins access to the primary Admin Panel.
+ */
+export async function getCoAdminPanelUser(
+  ctx: Ctx,
+): Promise<Doc<"users"> | null> {
+  try {
+    const user = await requireAuthenticatedUser(ctx);
+    if (isAdminUser(user) || isCoAdminUser(user)) {
+      return user;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Persist coAdmin (or admin) role for Co-Admin Panel sign-in. */
+export async function requireCoAdminPanelMutation(
+  ctx: MutationCtx,
+): Promise<Doc<"users">> {
+  const user = await requireAuthenticatedUser(ctx);
+
+  if (isAdminAllowlisted(user.email)) {
+    if (user.role !== "admin") {
+      await ctx.db.patch(user._id, { role: "admin" });
+      return { ...user, role: "admin" };
+    }
+    return user;
+  }
+
+  if (isCoAdminAllowlisted(user.email) || user.role === "coAdmin") {
+    if (user.role !== "coAdmin" && user.role !== "admin") {
+      await ctx.db.patch(user._id, { role: "coAdmin" });
+      return { ...user, role: "coAdmin" };
+    }
+    return user;
+  }
+
+  if (user.role === "admin") {
+    return user;
+  }
+
+  throw new Error("Admin access required");
+}
+
+/** Read-only staff check (admin, co-admin, or worker). Does not write role. */
 export async function requireStaff(ctx: Ctx): Promise<Doc<"users">> {
   const user = await requireAuthenticatedUser(ctx);
 
@@ -102,8 +207,8 @@ export async function requireStaff(ctx: Ctx): Promise<Doc<"users">> {
 }
 
 /**
- * Mutation-safe staff check. Persists admin/worker role from allowlists.
- * Admin allowlist wins over worker (never downgrade admin).
+ * Mutation-safe staff check. Persists roles from allowlists.
+ * Priority: admin > coAdmin > worker (never downgrade).
  */
 export async function requireStaffMutation(
   ctx: MutationCtx,
@@ -117,6 +222,16 @@ export async function requireStaffMutation(
 
   if (
     user.role !== "admin" &&
+    user.role !== "coAdmin" &&
+    isCoAdminAllowlisted(user.email)
+  ) {
+    await ctx.db.patch(user._id, { role: "coAdmin" });
+    return { ...user, role: "coAdmin" };
+  }
+
+  if (
+    user.role !== "admin" &&
+    user.role !== "coAdmin" &&
     user.role !== "worker" &&
     isWorkerAllowlisted(user.email)
   ) {
@@ -138,7 +253,7 @@ export async function getStaffUser(
 }
 
 /**
- * Worker panel gate: allowlisted workers, persisted workers, or admins.
+ * Worker panel gate: allowlisted workers, persisted workers, co-admins, or admins.
  * Does not grant workers admin-only APIs.
  */
 export async function getWorkerPanelUser(
@@ -146,7 +261,7 @@ export async function getWorkerPanelUser(
 ): Promise<Doc<"users"> | null> {
   try {
     const user = await requireAuthenticatedUser(ctx);
-    if (isAdminUser(user) || isWorkerUser(user)) {
+    if (isAdminOrCoAdminUser(user) || isWorkerUser(user)) {
       return user;
     }
     return null;
@@ -155,7 +270,7 @@ export async function getWorkerPanelUser(
   }
 }
 
-/** Persist worker (or admin) role for worker-panel sign-in. */
+/** Persist worker (or admin/coAdmin) role for worker-panel sign-in. */
 export async function requireWorkerPanelMutation(
   ctx: MutationCtx,
 ): Promise<Doc<"users">> {
@@ -169,15 +284,27 @@ export async function requireWorkerPanelMutation(
     return user;
   }
 
+  if (isCoAdminAllowlisted(user.email)) {
+    if (user.role !== "coAdmin" && user.role !== "admin") {
+      await ctx.db.patch(user._id, { role: "coAdmin" });
+      return { ...user, role: "coAdmin" };
+    }
+    return user;
+  }
+
   if (isWorkerAllowlisted(user.email) || user.role === "worker") {
-    if (user.role !== "worker" && user.role !== "admin") {
+    if (
+      user.role !== "worker" &&
+      user.role !== "admin" &&
+      user.role !== "coAdmin"
+    ) {
       await ctx.db.patch(user._id, { role: "worker" });
       return { ...user, role: "worker" };
     }
     return user;
   }
 
-  if (user.role === "admin") {
+  if (user.role === "admin" || user.role === "coAdmin") {
     return user;
   }
 

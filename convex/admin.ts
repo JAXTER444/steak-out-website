@@ -7,10 +7,10 @@ import { api } from "./_generated/api";
 import { action, mutation, query } from "./_generated/server";
 import {
   getAdminUser,
-  requireAdminMutation,
+  requirePrimaryAdminMutation,
 } from "./lib/admin";
 
-/** Current user if they are an admin (role or ADMIN_EMAILS allowlist). */
+/** Current user if they are a primary admin (role or ADMIN_EMAILS). */
 export const me = query({
   args: {},
   handler: async (ctx) => {
@@ -22,7 +22,7 @@ export const me = query({
 export const ensureRole = mutation({
   args: {},
   handler: async (ctx) => {
-    return await requireAdminMutation(ctx);
+    return await requirePrimaryAdminMutation(ctx);
   },
 });
 

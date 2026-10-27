@@ -42,12 +42,14 @@ async function mgmtFetch(path: string, init?: RequestInit) {
 
 async function assertAdmin(ctx: {
   runQuery: (
-    ref: typeof api.admin.me,
+    ref: typeof api.admin.me | typeof api.coAdmin.me,
     args: Record<string, never>,
   ) => Promise<unknown>;
 }) {
-  const me = await ctx.runQuery(api.admin.me, {});
-  if (!me) {
+  const primary = await ctx.runQuery(api.admin.me, {});
+  if (primary) return;
+  const coAdmin = await ctx.runQuery(api.coAdmin.me, {});
+  if (!coAdmin) {
     throw new Error("Admin access required");
   }
 }
