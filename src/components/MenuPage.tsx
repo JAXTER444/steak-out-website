@@ -1,9 +1,10 @@
 import { Button } from "./ui/button";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { menuImageMobile, menuItems } from "../data/menuItems";
 import type { MenuItem } from "../lib/cart";
 import { AddToCartDialog } from "./AddToCartDialog";
+import { useMenuWithImages } from "../hooks/useMenuWithImages";
 
 const menuGridClassName =
   "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-3.5 sm:gap-4 md:gap-5";
@@ -19,7 +20,9 @@ function MenuProductGrid({
 }) {
   return (
     <div className={menuGridClassName}>
-      {items.map((item, index) => (
+      {items.map((item, index) => {
+        const useMobileWebp = item.image.startsWith("/menu/");
+        return (
         <article
           key={item.id}
           className="flex flex-col justify-between overflow-hidden rounded-[8px] border-2 border-black border-solid bg-white"
@@ -27,11 +30,13 @@ function MenuProductGrid({
           <div className="flex flex-col">
             <div className="aspect-square w-full shrink-0 overflow-hidden">
               <picture>
-                <source
-                  media="(max-width: 639px)"
-                  srcSet={menuImageMobile(item.image)}
-                  type="image/webp"
-                />
+                {useMobileWebp && (
+                  <source
+                    media="(max-width: 639px)"
+                    srcSet={menuImageMobile(item.image)}
+                    type="image/webp"
+                  />
+                )}
                 <ImageWithFallback
                   src={item.image}
                   alt={item.name}
@@ -65,7 +70,8 @@ function MenuProductGrid({
             </button>
           </div>
         </article>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -74,36 +80,43 @@ interface MenuPageProps {
   onNavigateToContact: () => void;
 }
 
+const MENU_CATEGORIES = [
+  "All",
+  "Beef",
+  "Chicken",
+  "Pork",
+  "Ready Meals & Prepared Food",
+  "Coffee Capsules & Beverages",
+  "Cakes & Desserts",
+] as const;
+
 export function MenuPage({ onNavigateToContact }: MenuPageProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [addToCartItem, setAddToCartItem] = useState<MenuItem | null>(null);
   const [addToCartOpen, setAddToCartOpen] = useState(false);
+  const liveMenu = useMenuWithImages();
+  const catalog = liveMenu ?? menuItems;
 
-  const categories = [
-    "All",
-    "Beef",
-    "Chicken",
-    "Pork",
-    "Ready Meals & Prepared Food",
-    "Coffee Capsules & Beverages",
-    "Cakes & Desserts",
-  ];
+  const filteredItems = useMemo(
+    () =>
+      selectedCategory === "All"
+        ? catalog
+        : catalog.filter((item) => item.category === selectedCategory),
+    [catalog, selectedCategory],
+  );
 
-  const filteredItems =
-    selectedCategory === "All"
-      ? menuItems
-      : menuItems.filter((item) => item.category === selectedCategory);
-
-  const categorySections =
-    selectedCategory === "All"
-      ? categories
-          .filter((category) => category !== "All")
-          .map((category) => ({
-            category,
-            items: menuItems.filter((item) => item.category === category),
-          }))
-          .filter((section) => section.items.length > 0)
-      : [];
+  const categorySections = useMemo(
+    () =>
+      selectedCategory === "All"
+        ? MENU_CATEGORIES.filter((category) => category !== "All")
+            .map((category) => ({
+              category,
+              items: catalog.filter((item) => item.category === category),
+            }))
+            .filter((section) => section.items.length > 0)
+        : [],
+    [catalog, selectedCategory],
+  );
 
   const openAddToCart = (item: MenuItem) => {
     setAddToCartItem(item);
@@ -153,7 +166,7 @@ export function MenuPage({ onNavigateToContact }: MenuPageProps) {
         {/* Category Filter */}
         <div className="mb-12">
           <div className="flex flex-wrap gap-3 justify-center">
-            {categories.map((category) => (
+            {MENU_CATEGORIES.map((category) => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}

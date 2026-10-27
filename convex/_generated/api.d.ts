@@ -12,6 +12,8 @@ import type * as admin from "../admin.js";
 import type * as adminContact from "../adminContact.js";
 import type * as adminOrders from "../adminOrders.js";
 import type * as auth from "../auth.js";
+import type * as coAdmin from "../coAdmin.js";
+import type * as coAdminDataBridge from "../coAdminDataBridge.js";
 import type * as contact from "../contact.js";
 import type * as http from "../http.js";
 import type * as invoiceEmail from "../invoiceEmail.js";
@@ -19,6 +21,7 @@ import type * as lib_admin from "../lib/admin.js";
 import type * as managementBridge from "../managementBridge.js";
 import type * as managementHttp from "../managementHttp.js";
 import type * as orders from "../orders.js";
+import type * as productImages from "../productImages.js";
 import type * as users from "../users.js";
 import type * as worker from "../worker.js";
 
@@ -33,6 +36,8 @@ declare const fullApi: ApiFromModules<{
   adminContact: typeof adminContact;
   adminOrders: typeof adminOrders;
   auth: typeof auth;
+  coAdmin: typeof coAdmin;
+  coAdminDataBridge: typeof coAdminDataBridge;
   contact: typeof contact;
   http: typeof http;
   invoiceEmail: typeof invoiceEmail;
@@ -40,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   managementBridge: typeof managementBridge;
   managementHttp: typeof managementHttp;
   orders: typeof orders;
+  productImages: typeof productImages;
   users: typeof users;
   worker: typeof worker;
 }>;

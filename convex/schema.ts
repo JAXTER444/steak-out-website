@@ -23,7 +23,12 @@ const schema = defineSchema({
     phoneVerificationTime: v.optional(v.number()),
     isAnonymous: v.optional(v.boolean()),
     role: v.optional(
-      v.union(v.literal("admin"), v.literal("worker"), v.literal("customer")),
+      v.union(
+        v.literal("admin"),
+        v.literal("coAdmin"),
+        v.literal("worker"),
+        v.literal("customer"),
+      ),
     ),
   }).index("email", ["email"]),
 
@@ -60,6 +65,13 @@ const schema = defineSchema({
     message: v.string(),
     readAt: v.optional(v.number()),
   }),
+
+  /** Admin-uploaded product photos that override static `menuItems` images. */
+  productImages: defineTable({
+    menuItemId: v.number(),
+    storageId: v.id("_storage"),
+    updatedAt: v.number(),
+  }).index("by_menu_item", ["menuItemId"]),
 });
 
 export default schema;
