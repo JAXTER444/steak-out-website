@@ -72,6 +72,13 @@ const schema = defineSchema({
     storageId: v.id("_storage"),
     updatedAt: v.number(),
   }).index("by_menu_item", ["menuItemId"]),
+
+  /** Admin-set product prices that override static `menuItems` prices. */
+  productPrices: defineTable({
+    menuItemId: v.number(),
+    price: v.number(),
+    updatedAt: v.number(),
+  }).index("by_menu_item", ["menuItemId"]),
 });
 
 export default schema;

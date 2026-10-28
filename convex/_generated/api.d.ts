@@ -22,6 +22,7 @@ import type * as managementBridge from "../managementBridge.js";
 import type * as managementHttp from "../managementHttp.js";
 import type * as orders from "../orders.js";
 import type * as productImages from "../productImages.js";
+import type * as productPrices from "../productPrices.js";
 import type * as users from "../users.js";
 import type * as worker from "../worker.js";
 
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   managementHttp: typeof managementHttp;
   orders: typeof orders;
   productImages: typeof productImages;
+  productPrices: typeof productPrices;
   users: typeof users;
   worker: typeof worker;
 }>;
