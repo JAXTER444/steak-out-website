@@ -222,7 +222,7 @@ export function CheckoutPage({ onNavigateToCart, onOrderPlaced }: CheckoutPagePr
               <h2 className="text-xl font-medium text-gray-900 mb-4">Order summary</h2>
               <ul className="space-y-3 mb-4 max-h-48 overflow-y-auto">
                 {items.map((item) => (
-                  <li key={item.id} className="flex justify-between gap-2 text-sm">
+                  <li key={item.lineKey} className="flex justify-between gap-2 text-sm">
                     <span className="text-gray-700">
                       {item.quantity}× {item.name}
                     </span>

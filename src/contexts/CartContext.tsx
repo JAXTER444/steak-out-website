@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import type { CartItem, MenuItem } from "../lib/cart";
-import { parsePrice } from "../lib/cart";
+import { cartLineKey, parsePrice } from "../lib/cart";
 
 const STORAGE_KEY = "steakout-cart";
 
@@ -16,19 +16,27 @@ interface CartContextValue {
   items: CartItem[];
   totalQuantity: number;
   addItem: (item: MenuItem, quantity: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
-  removeItem: (id: number) => void;
+  updateQuantity: (lineKey: string, quantity: number) => void;
+  removeItem: (lineKey: string) => void;
   clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
+
+function normalizeCartItem(item: CartItem & { lineKey?: string }): CartItem {
+  return {
+    ...item,
+    lineKey: item.lineKey ?? cartLineKey(item.id, item.weight),
+  };
+}
 
 function loadCart(): CartItem[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
     const parsed = JSON.parse(stored) as CartItem[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeCartItem);
   } catch {
     return [];
   }
@@ -43,11 +51,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback((item: MenuItem, quantity: number) => {
     const price = parsePrice(item.price);
+    const lineKey = cartLineKey(item.id, item.weight);
     setItems((current) => {
-      const existing = current.find((cartItem) => cartItem.id === item.id);
+      const existing = current.find((cartItem) => cartItem.lineKey === lineKey);
       if (existing) {
         return current.map((cartItem) =>
-          cartItem.id === item.id
+          cartItem.lineKey === lineKey
             ? { ...cartItem, quantity: cartItem.quantity + quantity }
             : cartItem,
         );
@@ -56,6 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ...current,
         {
           id: item.id,
+          lineKey,
           name: item.name,
           price,
           priceLabel: item.price,
@@ -67,16 +77,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const updateQuantity = useCallback((id: number, quantity: number) => {
+  const updateQuantity = useCallback((lineKey: string, quantity: number) => {
     setItems((current) =>
       current
-        .map((item) => (item.id === id ? { ...item, quantity } : item))
+        .map((item) => (item.lineKey === lineKey ? { ...item, quantity } : item))
         .filter((item) => item.quantity > 0),
     );
   }, []);
 
-  const removeItem = useCallback((id: number) => {
-    setItems((current) => current.filter((item) => item.id !== id));
+  const removeItem = useCallback((lineKey: string) => {
+    setItems((current) => current.filter((item) => item.lineKey !== lineKey));
   }, []);
 
   const clearCart = useCallback(() => {

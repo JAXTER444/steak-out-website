@@ -13,10 +13,10 @@ interface CartPageProps {
 export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPageProps) {
   const { items: cartItems, updateQuantity, removeItem, totalQuantity } = useCart();
 
-  const adjustQuantity = (id: number, change: number) => {
-    const item = cartItems.find((cartItem) => cartItem.id === id);
+  const adjustQuantity = (lineKey: string, change: number) => {
+    const item = cartItems.find((cartItem) => cartItem.lineKey === lineKey);
     if (!item) return;
-    updateQuantity(id, item.quantity + change);
+    updateQuantity(lineKey, item.quantity + change);
   };
 
   const { subtotal, vat, delivery, total } = computeOrderTotals(cartItems);
@@ -55,7 +55,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
           <div className="grid lg:grid-cols-3 gap-6 md:gap-8">
             <div className="lg:col-span-2 space-y-4">
               {cartItems.map((item) => (
-                <div key={item.id} className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
+                <div key={item.lineKey} className="bg-white rounded-2xl shadow-sm p-4 md:p-6">
                   <div className="flex gap-4 md:gap-6">
                     <div className="w-20 h-20 md:w-32 md:h-32 flex-shrink-0 rounded-xl overflow-hidden">
                       <ImageWithFallback
@@ -77,7 +77,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
                         <div className="flex items-center gap-2 md:gap-3">
                           <button
                             type="button"
-                            onClick={() => adjustQuantity(item.id, -1)}
+                            onClick={() => adjustQuantity(item.lineKey, -1)}
                             className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 border-gray-300 flex items-center justify-center hover:border-gray-400 transition-colors"
                           >
                             <Minus className="w-3 h-3 md:w-4 md:h-4 text-gray-600" />
@@ -87,7 +87,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
                           </span>
                           <button
                             type="button"
-                            onClick={() => adjustQuantity(item.id, 1)}
+                            onClick={() => adjustQuantity(item.lineKey, 1)}
                             className="w-7 h-7 md:w-8 md:h-8 rounded-full border-2 flex items-center justify-center transition-colors"
                             style={{ borderColor: "#EE101A" }}
                           >
@@ -108,7 +108,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
 
                     <button
                       type="button"
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(item.lineKey)}
                       className="self-start p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4 md:w-5 md:h-5 text-gray-400 hover:text-red-500" />

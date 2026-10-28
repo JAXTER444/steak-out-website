@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { MenuItem } from "../lib/cart";
+import type { MenuItem, WeightOption } from "../lib/cart";
 import { formatRand, parsePrice } from "../lib/cart";
 import { useCart } from "../contexts/CartContext";
 import {
@@ -21,26 +21,44 @@ interface AddToCartDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function defaultWeightOption(item: MenuItem): WeightOption | null {
+  return item.weightOptions?.[0] ?? null;
+}
+
 export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null);
 
   useEffect(() => {
-    if (open) {
+    if (open && item) {
       setQuantity(1);
+      setSelectedWeight(defaultWeightOption(item));
     }
-  }, [open, item?.id]);
+  }, [open, item]);
 
   if (!item) {
     return null;
   }
 
-  const unitPrice = parsePrice(item.price);
+  const hasWeightOptions = Boolean(item.weightOptions?.length);
+  const unitPriceLabel = selectedWeight?.price ?? item.price;
+  const unitWeight = selectedWeight?.weight ?? item.weight;
+  const unitPrice = parsePrice(unitPriceLabel);
   const lineTotal = unitPrice * quantity;
 
   const handleAdd = () => {
-    addItem(item, quantity);
-    toast.success(`${quantity} × ${item.name} added to cart`);
+    const resolved: MenuItem = {
+      ...item,
+      price: unitPriceLabel,
+      weight: unitWeight,
+    };
+    addItem(resolved, quantity);
+    toast.success(
+      hasWeightOptions
+        ? `${quantity} × ${item.name} (${unitWeight}) added to cart`
+        : `${quantity} × ${item.name} added to cart`,
+    );
     onOpenChange(false);
   };
 
@@ -53,7 +71,9 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
               Add to cart
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Choose how many you&apos;d like to add.
+              {hasWeightOptions
+                ? "Choose a size and how many you\u2019d like to add."
+                : "Choose how many you\u2019d like to add."}
             </DialogDescription>
           </DialogHeader>
 
@@ -69,10 +89,44 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
               <h3 className="text-lg font-medium text-gray-900 leading-snug">
                 {item.name}
               </h3>
-              <p className="text-sm text-gray-600 mt-1">{item.weight}</p>
-              <p className="text-lg font-bold text-[#EE101A] mt-2">{item.price}</p>
+              <p className="text-sm text-gray-600 mt-1">{unitWeight}</p>
+              <p className="text-lg font-bold text-[#EE101A] mt-2">{unitPriceLabel}</p>
             </div>
           </div>
+
+          {hasWeightOptions && item.weightOptions && (
+            <div className="mb-6">
+              <p className="text-sm font-medium text-gray-700 mb-2">Weight</p>
+              <div className="grid grid-cols-3 gap-2">
+                {item.weightOptions.map((option) => {
+                  const selected = selectedWeight?.weight === option.weight;
+                  return (
+                    <button
+                      key={option.weight}
+                      type="button"
+                      onClick={() => setSelectedWeight(option)}
+                      className={`rounded-[8px] border-2 px-2 py-2.5 text-center transition-colors ${
+                        selected
+                          ? "border-[#EE101A] bg-[#EE101A]/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <span className="block text-sm font-medium text-gray-900">
+                        {option.weight}
+                      </span>
+                      <span
+                        className={`block text-xs mt-0.5 ${
+                          selected ? "text-[#EE101A] font-semibold" : "text-gray-500"
+                        }`}
+                      >
+                        {option.price}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-between rounded-[8px] border-2 border-gray-200 px-4 py-3 mb-6">
             <span className="text-sm font-medium text-gray-700">Quantity</span>

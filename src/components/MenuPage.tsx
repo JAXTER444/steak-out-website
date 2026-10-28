@@ -3,6 +3,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { useMemo, useState } from "react";
 import { menuImageMobile, menuItems } from "../data/menuItems";
 import type { MenuItem } from "../lib/cart";
+import { menuDisplayPrice, menuDisplayWeight } from "../lib/cart";
 import { AddToCartDialog } from "./AddToCartDialog";
 import { useMenuWithImages } from "../hooks/useMenuWithImages";
 import { MenuQueryErrorBoundary } from "./MenuQueryErrorBoundary";
@@ -53,11 +54,11 @@ function MenuProductGrid({
                   {item.name}
                 </h3>
                 <p className="text-sm leading-normal tracking-[0.28px] text-black/80">
-                  {item.weight}
+                  {menuDisplayWeight(item)}
                 </p>
               </div>
               <p className="text-lg font-bold leading-normal tracking-[0.36px] text-[#EE101A]">
-                {item.price}
+                {menuDisplayPrice(item)}
               </p>
             </div>
           </div>
@@ -217,11 +218,10 @@ function MenuPageView({
           <div className="flex flex-col gap-12 md:gap-16">
             {categorySections.map((section, sectionIndex) => (
               <section key={section.category}>
-                <div className="mb-5 md:mb-6">
-                  <h2 className="text-2xl font-medium tracking-tight text-gray-900 md:text-3xl">
+                <div className="mb-5 md:mb-6 w-fit">
+                  <h2 className="text-2xl font-medium tracking-tight text-gray-900 md:text-3xl pr-3.5 border-b-2 border-[#EE101A] pb-2.5">
                     {section.category}
                   </h2>
-                  <div className="mt-2.5 h-0.5 w-14 bg-[#EE101A]" aria-hidden="true" />
                 </div>
                 <MenuProductGrid
                   items={section.items}

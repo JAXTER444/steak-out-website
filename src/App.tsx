@@ -38,6 +38,7 @@ export default function App() {
       items: [
         {
           id: 1,
+          lineKey: '1::Per kg',
           name: 'Tender Ribeye',
           price: 289,
           priceLabel: 'R289/kg',
@@ -47,6 +48,7 @@ export default function App() {
         },
         {
           id: 2,
+          lineKey: '2::Per kg',
           name: 'Chicken Fillets',
           price: 95,
           priceLabel: 'R95/kg',

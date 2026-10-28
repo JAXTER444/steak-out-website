@@ -76,7 +76,7 @@ export function OrderConfirmationPage({
                 </p>
                 <ul className="space-y-2">
                   {order.items.map((item) => (
-                    <li key={item.id} className="flex justify-between gap-4 text-sm">
+                    <li key={item.lineKey} className="flex justify-between gap-4 text-sm">
                       <span className="text-gray-800">
                         {item.quantity}× {item.name}
                         <span className="text-gray-500"> · {item.weight}</span>
