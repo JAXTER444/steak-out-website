@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { MenuItem, WeightOption } from "../lib/cart";
-import { formatRand, parsePrice } from "../lib/cart";
+import type { MenuItem, ProductOption } from "../lib/cart";
+import {
+  formatRand,
+  optionPrice,
+  optionWeight,
+  parsePrice,
+} from "../lib/cart";
 import { useCart } from "../contexts/CartContext";
 import {
   Dialog,
@@ -21,19 +26,15 @@ interface AddToCartDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-function defaultWeightOption(item: MenuItem): WeightOption | null {
-  return item.weightOptions?.[0] ?? null;
-}
-
 export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogProps) {
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
-  const [selectedWeight, setSelectedWeight] = useState<WeightOption | null>(null);
+  const [selectedOption, setSelectedOption] = useState<ProductOption | null>(null);
 
   useEffect(() => {
     if (open && item) {
       setQuantity(1);
-      setSelectedWeight(defaultWeightOption(item));
+      setSelectedOption(item.options?.[0] ?? null);
     }
   }, [open, item]);
 
@@ -41,11 +42,21 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
     return null;
   }
 
-  const hasWeightOptions = Boolean(item.weightOptions?.length);
-  const unitPriceLabel = selectedWeight?.price ?? item.price;
-  const unitWeight = selectedWeight?.weight ?? item.weight;
+  const hasOptions = Boolean(item.options?.length);
+  const unitPriceLabel = selectedOption
+    ? optionPrice(item, selectedOption)
+    : item.price;
+  const unitWeight = selectedOption
+    ? optionWeight(item, selectedOption)
+    : item.weight;
   const unitPrice = parsePrice(unitPriceLabel);
   const lineTotal = unitPrice * quantity;
+  const optionHeading = item.optionLabel ?? "Option";
+  const pricesVary =
+    hasOptions &&
+    new Set(
+      item.options!.map((option) => optionPrice(item, option)),
+    ).size > 1;
 
   const handleAdd = () => {
     const resolved: MenuItem = {
@@ -55,12 +66,20 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
     };
     addItem(resolved, quantity);
     toast.success(
-      hasWeightOptions
-        ? `${quantity} × ${item.name} (${unitWeight}) added to cart`
+      hasOptions && selectedOption
+        ? `${quantity} × ${item.name} (${selectedOption.label}) added to cart`
         : `${quantity} × ${item.name} added to cart`,
     );
     onOpenChange(false);
   };
+
+  const optionCount = item.options?.length ?? 0;
+  const optionGridClass =
+    optionCount <= 2
+      ? "grid-cols-2"
+      : optionCount === 3
+        ? "grid-cols-3"
+        : "grid-cols-2 sm:grid-cols-3";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -71,8 +90,8 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
               Add to cart
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              {hasWeightOptions
-                ? "Choose a size and how many you\u2019d like to add."
+              {hasOptions
+                ? `Choose a ${optionHeading.toLowerCase()} and how many you\u2019d like to add.`
                 : "Choose how many you\u2019d like to add."}
             </DialogDescription>
           </DialogHeader>
@@ -94,33 +113,36 @@ export function AddToCartDialog({ item, open, onOpenChange }: AddToCartDialogPro
             </div>
           </div>
 
-          {hasWeightOptions && item.weightOptions && (
+          {hasOptions && item.options && (
             <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-2">Weight</p>
-              <div className="grid grid-cols-3 gap-2">
-                {item.weightOptions.map((option) => {
-                  const selected = selectedWeight?.weight === option.weight;
+              <p className="text-sm font-medium text-gray-700 mb-2">{optionHeading}</p>
+              <div className={`grid ${optionGridClass} gap-2`}>
+                {item.options.map((option) => {
+                  const selected = selectedOption?.label === option.label;
+                  const priceLabel = optionPrice(item, option);
                   return (
                     <button
-                      key={option.weight}
+                      key={option.label}
                       type="button"
-                      onClick={() => setSelectedWeight(option)}
+                      onClick={() => setSelectedOption(option)}
                       className={`rounded-[8px] border-2 px-2 py-2.5 text-center transition-colors ${
                         selected
                           ? "border-[#EE101A] bg-[#EE101A]/5"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
-                      <span className="block text-sm font-medium text-gray-900">
-                        {option.weight}
+                      <span className="block text-sm font-medium text-gray-900 leading-snug">
+                        {option.label}
                       </span>
-                      <span
-                        className={`block text-xs mt-0.5 ${
-                          selected ? "text-[#EE101A] font-semibold" : "text-gray-500"
-                        }`}
-                      >
-                        {option.price}
-                      </span>
+                      {pricesVary && (
+                        <span
+                          className={`block text-xs mt-0.5 ${
+                            selected ? "text-[#EE101A] font-semibold" : "text-gray-500"
+                          }`}
+                        >
+                          {priceLabel}
+                        </span>
+                      )}
                     </button>
                   );
                 })}

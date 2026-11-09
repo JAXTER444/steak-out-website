@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requirePrimaryAdminMutation } from "./lib/admin";
+import { requireAdminMutation } from "./lib/admin";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "image/jpeg",
@@ -39,7 +39,7 @@ export const list = query({
 export const generateUploadUrl = mutation({
   args: {},
   handler: async (ctx) => {
-    await requirePrimaryAdminMutation(ctx);
+    await requireAdminMutation(ctx);
     return await ctx.storage.generateUploadUrl();
   },
 });
@@ -51,7 +51,7 @@ export const setImage = mutation({
     storageId: v.id("_storage"),
   },
   handler: async (ctx, { menuItemId, storageId }) => {
-    await requirePrimaryAdminMutation(ctx);
+    await requireAdminMutation(ctx);
 
     if (!Number.isInteger(menuItemId) || menuItemId <= 0) {
       throw new Error("Invalid product id");
@@ -106,7 +106,7 @@ export const clearImage = mutation({
     menuItemId: v.number(),
   },
   handler: async (ctx, { menuItemId }) => {
-    await requirePrimaryAdminMutation(ctx);
+    await requireAdminMutation(ctx);
 
     const existing = await ctx.db
       .query("productImages")

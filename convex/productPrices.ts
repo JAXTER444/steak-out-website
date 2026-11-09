@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { requirePrimaryAdminMutation } from "./lib/admin";
+import { requireAdminMutation } from "./lib/admin";
 
 /** Public: storefront + panels read live menu price overrides. */
 export const list = query({
@@ -22,7 +22,7 @@ export const setPrice = mutation({
     price: v.number(),
   },
   handler: async (ctx, { menuItemId, price }) => {
-    await requirePrimaryAdminMutation(ctx);
+    await requireAdminMutation(ctx);
 
     if (!Number.isInteger(menuItemId) || menuItemId <= 0) {
       throw new Error("Invalid product id");
@@ -63,7 +63,7 @@ export const clearPrice = mutation({
     menuItemId: v.number(),
   },
   handler: async (ctx, { menuItemId }) => {
-    await requirePrimaryAdminMutation(ctx);
+    await requireAdminMutation(ctx);
 
     const existing = await ctx.db
       .query("productPrices")

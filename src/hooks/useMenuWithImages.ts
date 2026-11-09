@@ -4,20 +4,22 @@ import { api } from "../../convex/_generated/api";
 import { menuItems } from "../data/menuItems";
 import {
   formatRand,
+  optionPrice,
   parsePrice,
   type MenuItem,
-  type WeightOption,
+  type ProductOption,
 } from "../lib/cart";
 
 /**
- * Scale multi-size prices so the cheapest option matches `newMinPrice`.
- * Keeps relative gaps between sizes (e.g. fruit cake 500g / 1kg / 1.5kg).
+ * Scale multi-option prices so the cheapest option matches `newMinPrice`.
+ * Keeps relative gaps between options (e.g. fruit cake 500g / 1kg / 1.5kg).
  */
-function scaleWeightOptions(
-  options: WeightOption[],
+function scaleOptions(
+  item: MenuItem,
+  options: ProductOption[],
   newMinPrice: number,
-): WeightOption[] {
-  const amounts = options.map((option) => parsePrice(option.price));
+): ProductOption[] {
+  const amounts = options.map((option) => parsePrice(optionPrice(item, option)));
   const oldMin = Math.min(...amounts);
   if (!(oldMin > 0) || !Number.isFinite(oldMin)) {
     return options.map((option) => ({
@@ -68,8 +70,8 @@ export function useMenuWithImages(): MenuItem[] | undefined {
       }
       if (price !== undefined) {
         next.price = formatRand(price);
-        if (item.weightOptions?.length) {
-          next.weightOptions = scaleWeightOptions(item.weightOptions, price);
+        if (item.options?.length) {
+          next.options = scaleOptions(item, item.options, price);
         }
       }
       return next;
