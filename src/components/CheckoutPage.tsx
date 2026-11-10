@@ -238,10 +238,6 @@ export function CheckoutPage({ onNavigateToCart, onOrderPlaced }: CheckoutPagePr
                   <span>{formatRand(totals.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                  <span>VAT (15%)</span>
-                  <span>{formatRand(totals.vat)}</span>
-                </div>
-                <div className="flex justify-between text-gray-600">
                   <span>Delivery</span>
                   <span>{totals.delivery === 0 ? "FREE" : formatRand(totals.delivery)}</span>
                 </div>

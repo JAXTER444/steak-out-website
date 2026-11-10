@@ -93,10 +93,6 @@ export function OrderConfirmationPage({
                     <span className="tabular-nums">~{formatRand(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>VAT (15%)</span>
-                    <span className="tabular-nums">~{formatRand(order.vat)}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span>Delivery</span>
                     <span className="tabular-nums">
                       {order.deliveryFee === 0 ? "FREE" : `~${formatRand(order.deliveryFee)}`}

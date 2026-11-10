@@ -35,6 +35,7 @@ const BEEF_MARINADES: ProductOption[] = [
 ];
 
 const CHICKEN_MARINADES: ProductOption[] = [
+  { label: "Plain" },
   { label: "BBQ" },
   { label: "Lemon Pepper" },
   { label: "Sweet Chilli" },

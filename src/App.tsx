@@ -58,9 +58,9 @@ export default function App() {
         },
       ],
       subtotal: 673,
-      vat: 100.95,
+      vat: 0,
       deliveryFee: 0,
-      total: 773.95,
+      total: 673,
     };
 
     setLastOrder(mockOrder);

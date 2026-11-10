@@ -19,7 +19,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
     updateQuantity(lineKey, item.quantity + change);
   };
 
-  const { subtotal, vat, delivery, total } = computeOrderTotals(cartItems);
+  const { subtotal, delivery, total } = computeOrderTotals(cartItems);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-[108px] pb-[42px]">
@@ -128,10 +128,6 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
                   <div className="flex justify-between text-sm md:text-base text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-medium text-gray-900">{formatRand(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm md:text-base text-gray-600">
-                    <span>VAT (15%)</span>
-                    <span className="font-medium text-gray-900">{formatRand(vat)}</span>
                   </div>
                   <div className="flex justify-between text-sm md:text-base text-gray-600">
                     <span>Delivery</span>
