@@ -138,7 +138,7 @@ export function CartPage({ onNavigateToMenu, onNavigateToCheckout }: CartPagePro
 
                   {delivery > 0 && (
                     <div className="text-xs md:text-sm text-gray-500 italic">
-                      Free delivery on orders over R1,000
+                      Free delivery on orders over R4,000
                     </div>
                   )}
 
